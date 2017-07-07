@@ -22,6 +22,7 @@ var findMidiOutputPort = function(output, nameBeginning){
     console.log('chose port', port, 'for', nameBeginning);
     return port;
 };
+// var port = findMidiOutputPort(output, 'VirtualMIDI');
 var port = findMidiOutputPort(output, 'loopMIDI');
 output.openPort(port);
 input.on('message', function(deltaTime, message) {
