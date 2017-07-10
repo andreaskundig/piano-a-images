@@ -25,10 +25,9 @@ var getUrlParams = function(href){
     },
     run = function(imgDir, imageSequence){
         var midiSocket = new WebSocket("ws://localhost:8080"),
-            imgParent = document.getElementById('img-parent'),
-            nbImages = 4;
+            imgParent = document.getElementById('img-parent');
         imageSequence.forEach(function(imgName){
-            var h = '<img src="'+imgDir+'/'+imgName+'"/>';
+            var h = imgName ? '<img src="'+imgDir+'/'+imgName+'"/>': '<img/>';
             imgParent.innerHTML +=h;
         });
         var imgs= imgParent.querySelectorAll('img');
@@ -37,8 +36,9 @@ var getUrlParams = function(href){
         // }
         midiSocket.onmessage = function (event) {
             var message = JSON.parse(event.data),
-                noteOn =  message[1][0] === 144,
-                noteOff =  message[1][0] === 128,
+                midiCode = message[1][0],
+                noteOn =  midiCode === 144 || midiCode === 159,
+                noteOff =  midiCode === 128 || midiCode === 143,
                 key = message[1][1],
                 imgNb = (key - 36) % imageSequence.length ;
             if(noteOn || noteOff){
