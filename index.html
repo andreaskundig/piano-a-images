@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
      img {
-         display:none;
+         /* display:none; */
+         height:100%;                                    
+     }
+     img, #sprite-parent>div {
          position: absolute;
          top: 50%; 
-         left: 50%; 
+         left: 50%;
          transform: translate(-50%, -50%);
-         height:100%;                                    
      }   
      * {cursor: none;}
     </style>
@@ -18,7 +20,8 @@
     <script type="text/javascript" src="imgpiano.js"></script>
   </head>
   <body>
-    <div id="img-parent">
-    </div>
+    <!-- <div style="background-image: url(&quot;cuillere/06.png&quot;); background-repeat: no-repeat; width: 1280px; height: 720px; background-position: 0px -720px;"></div> -->
+    <div id="img-parent"></div>
+    <div id="sprite-parent"></div>
   </body>
 </html>
