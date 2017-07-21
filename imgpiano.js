@@ -28,8 +28,7 @@ var getUrlParams = function(href){
             return null;
         }
         // https://stackoverflow.com/questions/9486961/animated-image-with-javascript#9487083
-        var spriteParent = document.getElementById('sprite-parent'),
-            sprite = document.createElement('div'),
+        var sprite = document.createElement('div'),
             bgPosX =  Math.round((width - width * scale) / 2);
         sprite.style.backgroundImage = 'url("'+imgDir+'/'+imgName+'")';
         sprite.style.backgroundRepeat = 'no-repeat';
@@ -37,24 +36,38 @@ var getUrlParams = function(href){
         sprite.style.width = width,
         sprite.style.backgroundPositionX = bgPosX + 'px',
         sprite.style.height = Math.floor((height-1) * scale) - 1;
-        spriteParent.appendChild(sprite);
         return sprite;
     },
     buildSprites = function(imageSequence, imgDir, width, height, scale){
+        var spriteParent = document.getElementById('frame-parent');
         return imageSequence.map(function(imgName,i){
-            return buildSprite(imgDir, imgName, width, height, scale);});
+            var sprite = buildSprite(imgDir, imgName, width, height, scale);
+            if(sprite){spriteParent.appendChild(sprite);}
+            return sprite;
+        });
     },
-    showSpriteForNote = function(sprites, imageSequence, message, note,
-                                 height) {
+    showSprite = function(sprite, height, show){
+        var offset = show ? height : 0;
+        sprite.style.backgroundPositionY = -offset+'px';
+    },
+    showSpriteForNote = function(sprites, message, note, height) {
         var noteOn = message === 144 || message === 159,
             noteOff = message === 128 || message === 143,
-            imgNb = (note - 36) % imageSequence.length ;
+            imgNb = (note - 36) % sprites.length ;
         if(sprites[imgNb] && (noteOn || noteOff)){
-            var offset = noteOn ? height : 0;
-            sprites[imgNb].style.backgroundPositionY = -offset+'px';
+            showSprite(sprites[imgNb], height, noteOn);;
         }
     },
+    makeFrenchKeyboard = function(){
+        var keys = [81, 90, 83, 69, 68, 70, 84, 71, 89, 72, 85, 74, 73, 75],
+            keyToNote = {};
+        keys.forEach(function(k, i){
+            keyToNote[k] = 36 + i;
+        });
+    },
     synth,
+    playNote = function(message,note,velocity, imgs, imageCount, height){
+    },
     play = function(composition, imgs, scale){
         var v = 100,// velocity
             start = Date.now(),
@@ -68,10 +81,8 @@ var getUrlParams = function(href){
                         diff = mid.t - time;
                     if(diff < 0){
                         partition.shift();
-                        console.log(time, mid.t, diff);
                         synth.send([mid.m, mid.n, v]);
-                        showSpriteForNote(imgs, composition.imageSequence,
-                                       mid.m, mid.n, height);
+                        showSpriteForNote(imgs, mid.m, mid.n, height);
                     }else{
                         break;
                     }
@@ -80,30 +91,50 @@ var getUrlParams = function(href){
                     requestAnimationFrame(doPlay);
                 }
             };
-        // doPlay();
-        setTimeout(doPlay, 2000);
+        doPlay();
+        // setTimeout(doPlay, 2000);
     },
-    connectWebSocket = function(imgs, imgDir, composition){
+    connectWebSocket = function(imgs, imgDir, composition, scale){
         var midiSocket = new WebSocket("ws://localhost:8080"),
-            height = composition.imageSize.height / 2;
+            height = composition.imageSize.height * scale;
         midiSocket.onmessage = function (event) {
             var msgArray = JSON.parse(event.data)[1],
                 message = msgArray[0],
                 note = msgArray[1];
-            showSpriteForNote(imgs, composition.imageSequence, message, note,
-                              height);
+            showSpriteForNote(imgs, message, note, height);
         };
     },
+    buildBackground = function(imgDir, composition, scale){
+        if(composition.background){
+            var s = composition.imageSize,
+                bg = buildSprite(imgDir, composition.background,
+                                 s.width, s.height, scale),
+                bgParent = document.getElementById('background-parent');
+            bgParent.append(bg);
+            showSprite(bg, s.height * scale, true);
+        }
+    },
     run = function(imgDir, doPlay,composition){
+        if(!composition.imageSize){
+            composition.imageSize = {width: 1280, height: 720};
+        }
         var s = composition.imageSize,
             scale = Math.min(window.innerWidth/s.width,
                              window.innerHeight/s.height),
-            sprites = buildSprites(composition.imageSequence, imgDir, s.width, s.height, scale);
+            sprites = buildSprites(composition.imageSequence, imgDir,
+                                   s.width, s.height, scale),
+            frenchKeyboard = makeFrenchKeyboard();
+        buildBackground(imgDir, composition, scale);
         connectWebSocket(sprites, imgDir, composition, scale);
         if(doPlay){
             play(composition, sprites, scale);
         }
-        
+        document.addEventListener('keyup', function(e){
+            console.log(e.keyCode);
+        });
+        document.addEventListener('keydown', function(e){
+            // console.log(e.keyCode);
+        });
     };
 
 document.addEventListener('DOMContentLoaded', function(){

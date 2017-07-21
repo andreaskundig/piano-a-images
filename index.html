@@ -4,11 +4,10 @@
     <title>img piano</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
-     img {
-         /* display:none; */
-         height:100%;                                    
+     #frame-parent>div {
+         z-index: 5;
      }
-     img, #sprite-parent>div {
+     #frame-parent>div, #background-parent>div {
          position: absolute;
          top: 50%; 
          left: 50%;
@@ -21,7 +20,7 @@
   </head>
   <body>
     <!-- <div style="background-image: url(&quot;cuillere/06.png&quot;); background-repeat: no-repeat; width: 1280px; height: 720px; background-position: 0px -720px;"></div> -->
-    <div id="img-parent"></div>
-    <div id="sprite-parent"></div>
+    <div id="background-parent"></div>
+    <div id="frame-parent"></div>
   </body>
 </html>
