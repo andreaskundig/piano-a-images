@@ -50,7 +50,7 @@ var getUrlParams = function(href){
         var offset = show ? height : 0;
         sprite.style.backgroundPositionY = -offset+'px';
     },
-    showSpriteForNote = function(sprites, message, note, height) {
+    showSpriteForNote = function(message, note, sprites, height) {
         var noteOn = message === 144 || message === 159,
             noteOff = message === 128 || message === 143,
             imgNb = (note - 36) % sprites.length ;
@@ -58,19 +58,28 @@ var getUrlParams = function(href){
             showSprite(sprites[imgNb], height, noteOn);;
         }
     },
-    makeFrenchKeyboard = function(){
-        var keys = [81, 90, 83, 69, 68, 70, 84, 71, 89, 72, 85, 74, 73, 75],
+    makeKeyboard = function(french){
+        var keysFr = [81, 90, 83, 69, 68, 70, 84, 71, 89, 72, 85, 74, 73, 75],
+            keysCh = [65, 87, 83, 69, 68, 70, 84, 71, 90, 72, 85, 74, 73, 75],
+            keys = french ? keysFr: keysCh,
             keyToNote = {};
         keys.forEach(function(k, i){
             keyToNote[k] = 36 + i;
         });
+        return keyToNote;
     },
     synth,
-    playNote = function(message,note,velocity, imgs, imageCount, height){
+    playNote = function(message,note,velocity, imgs, height){
+        if(!note){return;}
+        if(message==144){
+            console.log(note);
+        }
+        synth.send([message, note, velocity]);
+        showSpriteForNote(message, note, imgs, height);
     },
     play = function(composition, imgs, scale){
         var v = 100,// velocity
-            start = Date.now(),
+            start = Date.now() + 500,
             compare = function(a,b){ return a.t - b.t;},
             partition = composition.partition.slice().sort(compare),
             height = composition.imageSize.height * scale,
@@ -81,8 +90,7 @@ var getUrlParams = function(href){
                         diff = mid.t - time;
                     if(diff < 0){
                         partition.shift();
-                        synth.send([mid.m, mid.n, v]);
-                        showSpriteForNote(imgs, mid.m, mid.n, height);
+                        playNote(mid.m, mid.n, v, imgs, height);
                     }else{
                         break;
                     }
@@ -91,8 +99,8 @@ var getUrlParams = function(href){
                     requestAnimationFrame(doPlay);
                 }
             };
-        doPlay();
-        // setTimeout(doPlay, 2000);
+        //doPlay();
+        setTimeout(doPlay, 300); //stops the flickering at start, but why?
     },
     connectWebSocket = function(imgs, imgDir, composition, scale){
         var midiSocket = new WebSocket("ws://localhost:8080"),
@@ -101,7 +109,7 @@ var getUrlParams = function(href){
             var msgArray = JSON.parse(event.data)[1],
                 message = msgArray[0],
                 note = msgArray[1];
-            showSpriteForNote(imgs, message, note, height);
+            showSpriteForNote(message, note, imgs, height);
         };
     },
     buildBackground = function(imgDir, composition, scale){
@@ -123,18 +131,21 @@ var getUrlParams = function(href){
                              window.innerHeight/s.height),
             sprites = buildSprites(composition.imageSequence, imgDir,
                                    s.width, s.height, scale),
-            frenchKeyboard = makeFrenchKeyboard();
+            keyboard = makeKeyboard(),
+            velocity = 100;
         buildBackground(imgDir, composition, scale);
-        connectWebSocket(sprites, imgDir, composition, scale);
         if(doPlay){
             play(composition, sprites, scale);
         }
-        document.addEventListener('keyup', function(e){
-            console.log(e.keyCode);
-        });
         document.addEventListener('keydown', function(e){
-            // console.log(e.keyCode);
+            var note = keyboard[e.keyCode];
+            playNote(144, note, velocity, sprites, s.height * scale);
         });
+        document.addEventListener('keyup', function(e){
+            var note = keyboard[e.keyCode];
+            playNote(128, note, velocity, sprites, s.height * scale);
+        });
+        connectWebSocket(sprites, imgDir, composition, scale);
     };
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -142,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function(){
         
         var imgDir = getUrlParam(location.href,'img') || 'img',
             doPlay = getUrlParam(location.href,'play');
+        document.title = imgDir;
         synth = new WebAudioTinySynth();
 //        synth.send([0xc0,14]); // tubular bells
         loadJs(imgDir+'/img.js').then(function(){
