@@ -58,10 +58,12 @@ var getUrlParams = function(href){
             showSprite(sprites[imgNb], height, noteOn);;
         }
     },
-    makeKeyboard = function(french){
-        var keysFr = [81, 90, 83, 69, 68, 70, 84, 71, 89, 72, 85, 74, 73, 75],
-            keysCh = [65, 87, 83, 69, 68, 70, 84, 71, 90, 72, 85, 74, 73, 75],
-            keys = french ? keysFr: keysCh,
+    makeKeyboard = function(){
+        var lKeys = 'QAWSDRFTGYHJIKOL'.split('')
+                .map(function(l){return 'Key'+l;}),
+            rKeys = ['Semicolon','BracketLeft','Quote','BracketRight',
+                     'Backslash','Enter'],
+            keys = ['CapsLock'].concat(lKeys).concat(rKeys),
             keyToNote = {};
         keys.forEach(function(k, i){
             keyToNote[k] = 36 + i;
@@ -72,7 +74,7 @@ var getUrlParams = function(href){
     playNote = function(message,note,velocity, imgs, height){
         if(!note){return;}
         if(message==144){
-            console.log(note);
+            // console.log(note);
         }
         synth.send([message, note, velocity]);
         showSpriteForNote(message, note, imgs, height);
@@ -122,6 +124,7 @@ var getUrlParams = function(href){
             showSprite(bg, s.height * scale, true);
         }
     },
+    keyDown = {},
     run = function(imgDir, doPlay,composition){
         if(!composition.imageSize){
             composition.imageSize = {width: 1280, height: 720};
@@ -138,11 +141,16 @@ var getUrlParams = function(href){
             play(composition, sprites, scale);
         }
         document.addEventListener('keydown', function(e){
-            var note = keyboard[e.keyCode];
+            console.log(e.code, keyDown[e.code], !!keyDown[e.code]);
+            if(keyDown[e.code]){ return; }
+            var note = keyboard[e.code];
+            console.log(e.code,note);
+            keyDown[e.code] = true;
             playNote(144, note, velocity, sprites, s.height * scale);
         });
         document.addEventListener('keyup', function(e){
-            var note = keyboard[e.keyCode];
+            keyDown[e.code] = false;
+            var note = keyboard[e.code];
             playNote(128, note, velocity, sprites, s.height * scale);
         });
         connectWebSocket(sprites, imgDir, composition, scale);
