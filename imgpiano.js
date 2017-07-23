@@ -59,12 +59,12 @@ var getUrlParams = function(href){
         }
     },
     makeKeyboard = function(){
-        var lKeys = 'QAWSDRFTGYHJIKOL'.split('')
-                .map(function(l){return 'Key'+l;}),
-            rKeys = ['Semicolon','BracketLeft','Quote','BracketRight',
-                     'Backslash','Enter'],
-            keys = ['CapsLock'].concat(lKeys).concat(rKeys),
-            keyToNote = {};
+        var keyToNote = {},
+            keys = ['CapsLock']
+                .concat('QAWSDRFTGYHJIKOL'.split('')
+                        .map(function(l){return 'Key'+l;}))
+                .concat(['Semicolon','BracketLeft','Quote','BracketRight',
+                         'Backslash','Enter']);
         keys.forEach(function(k, i){
             keyToNote[k] = 36 + i;
         });
@@ -74,12 +74,13 @@ var getUrlParams = function(href){
     playNote = function(message,note,velocity, imgs, height){
         if(!note){return;}
         if(message==144){
-            // console.log(note);
+            //console.log(note);
         }
         synth.send([message, note, velocity]);
         showSpriteForNote(message, note, imgs, height);
     },
     play = function(composition, imgs, scale){
+        if(!composition.partition){ return; }
         var v = 100,// velocity
             start = Date.now() + 500,
             compare = function(a,b){ return a.t - b.t;},
@@ -132,28 +133,26 @@ var getUrlParams = function(href){
         var s = composition.imageSize,
             scale = Math.min(window.innerWidth/s.width,
                              window.innerHeight/s.height),
-            sprites = buildSprites(composition.imageSequence, imgDir,
+            imgs = buildSprites(composition.imageSequence, imgDir,
                                    s.width, s.height, scale),
             keyboard = makeKeyboard(),
             velocity = 100;
         buildBackground(imgDir, composition, scale);
         if(doPlay){
-            play(composition, sprites, scale);
+            play(composition, imgs, scale);
         }
         document.addEventListener('keydown', function(e){
-            console.log(e.code, keyDown[e.code], !!keyDown[e.code]);
             if(keyDown[e.code]){ return; }
             var note = keyboard[e.code];
-            console.log(e.code,note);
             keyDown[e.code] = true;
-            playNote(144, note, velocity, sprites, s.height * scale);
+            playNote(144, note, velocity, imgs, s.height * scale);
         });
         document.addEventListener('keyup', function(e){
             keyDown[e.code] = false;
             var note = keyboard[e.code];
-            playNote(128, note, velocity, sprites, s.height * scale);
+            playNote(128, note, velocity, imgs, s.height * scale);
         });
-        connectWebSocket(sprites, imgDir, composition, scale);
+        connectWebSocket(imgs, imgDir, composition, scale);
     };
 
 document.addEventListener('DOMContentLoaded', function(){
