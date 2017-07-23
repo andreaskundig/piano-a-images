@@ -158,8 +158,15 @@ var getUrlParams = function(href){
 document.addEventListener('DOMContentLoaded', function(){
     try{
         
-        var imgDir = getUrlParam(location.href,'img') || 'img',
-            doPlay = getUrlParam(location.href,'play');
+        var imgDir = getUrlParam(location.href,'img'),
+            doPlay = getUrlParam(location.href,'play'),
+            intro = document.getElementById('intro');
+        console.log(imgDir, !imgDir);
+        if(!imgDir){
+            document.querySelector('body').style.cursor = 'auto';
+            return;
+        }
+        intro.style.display = 'none';
         document.title = imgDir;
         synth = new WebAudioTinySynth();
 //        synth.send([0xc0,14]); // tubular bells

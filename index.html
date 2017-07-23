@@ -1,7 +1,7 @@
 <html >
   <head>
     <meta charset="UTF-8">
-    <title>img piano</title>
+    <title>Piano à images</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <style>
      #frame-parent>div {
@@ -13,13 +13,34 @@
          left: 50%;
          transform: translate(-50%, -50%);
      }   
-     * {cursor: none;}
+     body {cursor: none; width:100%; height:100%}
     </style>
     <script src="webaudio-tinysynth.min.js"></script>
     <script type="text/javascript" src="imgpiano.js"></script>
   </head>
   <body>
-    <!-- <div style="background-image: url(&quot;cuillere/06.png&quot;); background-repeat: no-repeat; width: 1280px; height: 720px; background-position: 0px -720px;"></div> -->
+    <div id="intro">
+      <p>Pianos mécaniques</p>
+      <ul>
+        <li><a href="index.html?play=y&img=proverbes">proverbes</a></li>
+        <li><a href="index.html?play=y&img=skater">skater</a></li>
+        <li><a href="index.html?play=y&img=skater_bis">
+          skater (vue d'ensemble)</a></li>
+        <li><a href="index.html?play=y&img=chien-cache">chien caché</a></li>
+        <li><a href="index.html?play=y&img=cuillere">cuillère</a></li>
+        <li><a href="index.html?play=y&img=chevaliers">chevaliers</a></li>
+      </ul>
+      <p>Pianos à jouer</p>
+      <ul>
+        <li><a href="index.html?img=proverbes">proverbes</a></li>
+        <li><a href="index.html?img=chien-cache">chien caché</a></li>
+        <li><a href="index.html?img=skater">skater</a></li>
+        <li><a href="index.html?img=skater_bis">
+          skater (vue d'ensemble)</a></li>
+        <li><a href="index.html?img=cuillere">cuillère</a></li>
+        <li><a href="index.html?img=chevaliers">chevaliers</a></li>
+      </ul>
+    </div>
     <div id="background-parent"></div>
     <div id="frame-parent"></div>
   </body>
