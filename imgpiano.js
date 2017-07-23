@@ -164,9 +164,9 @@ document.addEventListener('DOMContentLoaded', function(){
         console.log(imgDir, !imgDir);
         if(!imgDir){
             document.querySelector('body').style.cursor = 'auto';
+            intro.style.display = 'block';
             return;
         }
-        intro.style.display = 'none';
         document.title = imgDir;
         synth = new WebAudioTinySynth();
 //        synth.send([0xc0,14]); // tubular bells
