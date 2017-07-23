@@ -82,7 +82,10 @@ var getUrlParams = function(href){
     play = function(composition, imgs, scale){
         if(!composition.partition){ return; }
         var v = 100,// velocity
-            start = Date.now() + 500,
+            //stops the flickering at the start (why?)
+            //leaves time for loading the images on the web
+            loadingDelay = 600,
+            start = Date.now() + 200 + loadingDelay,
             compare = function(a,b){ return a.t - b.t;},
             partition = composition.partition.slice().sort(compare),
             height = composition.imageSize.height * scale,
@@ -103,7 +106,8 @@ var getUrlParams = function(href){
                 }
             };
         //doPlay();
-        setTimeout(doPlay, 300); //stops the flickering at start, but why?
+        // setTimeout(doPlay, 300); //stops the flickering at start, but why?
+        setTimeout(doPlay, loadingDelay); // time to load the images
     },
     connectWebSocket = function(imgs, imgDir, composition, scale){
         var midiSocket = new WebSocket("ws://localhost:8080"),
