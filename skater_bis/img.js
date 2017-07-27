@@ -9,13 +9,13 @@ var composition = {
     'skater0000.png', // 1
     'skater60000.png', // 2
     'skater0001.png', // 3
-    null,                     
-    null,                     
+    null, // 4 pas d'image
+    null, // 5 pas d'image
     'skater50001.png', // 6
     'skater60001.png', // 7
     'skater0002.png', // 8
     'skater40002.png', // 9 
-    null,                     
+    null, // 6 pas d'image
     'skater50002.png', // 11
     'skater60002.png', // 12
     'skater0003.png', // 13
@@ -24,12 +24,12 @@ var composition = {
     'skater40003.png', // 16
     'skater50003.png', // 17
     'skater0004.png', // 18
-    null,                     
+    null, // 19 pas d'image
     'skater20004.png', // 20
     'skater30004.png', // 21
     'skater60004.png', // 22
     'skater40004.png', // 23
-    null,                     
+    null, // 24 pas d'image
     'skater50004.png' // 25
     ],
     background:'skater.png',

@@ -64,7 +64,7 @@ var getUrlParams = function(href){
                 .concat('QAWSDRFTGYHJIKOL'.split('')
                         .map(function(l){return 'Key'+l;}))
                 .concat(['Semicolon','BracketLeft','Quote','BracketRight',
-                         'Backslash','Enter']);
+                          'Backslash','Backspace','Enter', 'ShiftRight']);
         keys.forEach(function(k, i){
             keyToNote[k] = 36 + i;
         });
@@ -74,7 +74,7 @@ var getUrlParams = function(href){
     playNote = function(message,note,velocity, imgs, height){
         if(!note){return;}
         if(message==144){
-            //console.log(note);
+            //console.log(note, note - 35);
         }
         synth.send([message, note, velocity]);
         showSpriteForNote(message, note, imgs, height);
