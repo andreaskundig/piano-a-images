@@ -64,7 +64,7 @@ var getUrlParams = function(href){
                 .concat('QAWSDRFTGYHJIKOL'.split('')
                         .map(function(l){return 'Key'+l;}))
                 .concat(['Semicolon','BracketLeft','Quote','BracketRight',
-                          'Backslash','Backspace','Enter', 'ShiftRight']);
+                          'Backslash', 'ShiftRight','Enter','ControlRight']);
         keys.forEach(function(k, i){
             keyToNote[k] = 36 + i;
         });

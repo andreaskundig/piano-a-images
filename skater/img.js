@@ -36,7 +36,14 @@ var composition = {
     imageSize: {width: 800, height: 800}},
 
     makePartition = function(){
-        var notes =   [1,3,8,13,18,20,21,23,25],
+        // var notes =   [1,3,8,13,18,20,21,23,25],
+        var notes =   [
+            1, 6,11,17,25,
+            1, 3, 9,16,23,
+            1, 3, 8,15,21,
+            1, 3, 8,13,20,
+            1, 3, 8,13,18,
+            2, 7,12,14,22],
             partition = [],
             duration,
             nextT = 0;
