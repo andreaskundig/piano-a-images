@@ -40,11 +40,17 @@ var getUrlParams = function(href){
     },
     buildSprites = function(imageSequence, imgDir, width, height, scale){
         var spriteParent = document.getElementById('frame-parent');
-        return imageSequence.map(function(imgName,i){
-            var sprite = buildSprite(imgDir, imgName, width, height, scale);
-            if(sprite){spriteParent.appendChild(sprite);}
-            return sprite;
-        });
+        return imageSequence.reduce(function(notesToImage, imgConfig, i){
+            let fileName = (imgConfig && imgConfig.file) || imgConfig,
+                sprite = buildSprite(imgDir, fileName,
+                                     width, height, scale);
+            if(sprite){
+                let index = isNaN(imgConfig.note) ? i : imgConfig.note;
+                spriteParent.appendChild(sprite);
+                notesToImage[index] = sprite;
+            }
+            return notesToImage;
+        },{length: imageSequence.length});
     },
     showSprite = function(sprite, height, show){
         var offset = show ? height : 0;
@@ -198,6 +204,12 @@ document.addEventListener('DOMContentLoaded', function(){
         }
         document.title = imgDir;
         synth = new WebAudioTinySynth();
+        // synth.send([0xc0,0]); // Acoustic grand piano
+        // synth.send([0xc0,1]); // Bright acoustic piano
+        // synth.send([0xc0,2]); // Electric grand piano
+        // synth.send([0xc0,3]); // Honky-tonk piano
+        // synth.send([0xc0,4]); // Electric Piano 1
+        // synth.send([0xc0,5]); // Electric Piano 2
         // synth.send([0xc0,14]); // tubular bells
         loadJs(imgDir+'/img.js').then(function(){
             run(imgDir, doPlay, composition);

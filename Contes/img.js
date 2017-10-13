@@ -1,6 +1,15 @@
-var composition = {imageSequence : [
-    '01.png','02.png','03.png','04.png','05.png','06.png','07.png','08.png','09.png','10.png','11.png','12.png'],
-
+var composition = {imageSequence : [{file: '03.png', note: 2},
+                                    {file: '04.png', note: 3},
+                                    {file: '05.png', note: 4},
+                                    {file: '06.png', note: 5},
+                                    {file: '07.png', note: 6},
+                                    {file: '08.png', note: 7},
+                                    {file: '09.png', note: 8},
+                                    {file: '10.png', note: 9},
+                                    {file: '11.png', note: 10},
+                                    {file: '12.png', note: 11},
+                                    {file: '01.png', note: 0},
+                                    {file: '02.png', note: 1}],
                    imageSize: {width: 665, height: 720}
                   },
     shuffle = function(a) {
