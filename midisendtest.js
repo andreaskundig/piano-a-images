@@ -23,8 +23,8 @@ console.log('ports', ports);
 var port = 0;
 for(var i = 0; i<ports; i++){
     var name = output.getPortName(i);
-    if(name.startsWith('Microsoft')){
-    // if(name.startsWith('loopMIDI')){
+    // if(name.startsWith('Microsoft')){
+    if(name.startsWith('loopMIDI')){
         port = i;
     }
 }
@@ -35,8 +35,10 @@ console.log('send to', output.getPortName(port), 'port', port);
 output.openPort(port);
 
 // Send a MIDI message.
-output.sendMessage([176,22,1]);
-//output.sendMessage([144,22,1]);
+//output.sendMessage([176,22,1]);
+// output.sendMessage([144,22,1]);
+output.sendMessage([144,41,100]);
+//output.sendMessage([128,41,100]);
 
-// Close the port when done.
-output.closePort();
+// Close the port  done.
+// output.closePort();

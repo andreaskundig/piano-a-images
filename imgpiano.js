@@ -73,6 +73,7 @@ var getUrlParams = function(href){
     synth,
     playNote = function(message,note,velocity, imgs, height){
         if(!note){return;}
+        // console.log('play',message,note,velocity);
         if(message==144){
             //console.log(note, note - 35);
         }
@@ -109,9 +110,31 @@ var getUrlParams = function(href){
         // setTimeout(doPlay, 300); //stops the flickering at start, but why?
         setTimeout(doPlay, loadingDelay); // time to load the images
     },
-    connectWebSocket = function(imgs, imgDir, composition, scale){
-        var midiSocket = new WebSocket("ws://localhost:8080"),
-            height = composition.imageSize.height * scale;
+    midiMessageReceived = function(ev, velocity, imgs, height) {
+        var message = ev.data[0],
+            note = ev.data[1],
+            vel = ev.data[2];
+        velocity = isNaN(vel)? velocity : vel;
+        // console.log('data', message, note, velocity);
+        playNote(message, note, velocity, imgs, height);
+    },
+    onMIDIInit = function(midiAccess, velocity, imgs, height) {
+        for (var input of midiAccess.inputs.values()){
+            console.log('midi input', input);
+            input.onmidimessage = ev => {
+                midiMessageReceived(ev, velocity, imgs, height);
+            };
+        }
+    },
+    initWebMidi = function(velocity, imgs, height){
+        if(navigator.requestMIDIAccess){      
+            navigator.requestMIDIAccess().then(
+                m => onMIDIInit(m, velocity, imgs, height),
+                e => console.error(e));
+        }
+    },
+    connectWebSocket = function(imgs, height){
+        var midiSocket = new WebSocket("ws://localhost:8080");
         midiSocket.onmessage = function (event) {
             var msgArray = JSON.parse(event.data)[1],
                 message = msgArray[0],
@@ -137,6 +160,7 @@ var getUrlParams = function(href){
         var s = composition.imageSize,
             scale = Math.min(window.innerWidth/s.width,
                              window.innerHeight/s.height),
+            height = s.height * scale,
             imgs = buildSprites(composition.imageSequence, imgDir,
                                    s.width, s.height, scale),
             keyboard = makeKeyboard(),
@@ -149,14 +173,15 @@ var getUrlParams = function(href){
             if(keyDown[e.code]){ return; }
             var note = keyboard[e.code];
             keyDown[e.code] = true;
-            playNote(144, note, velocity, imgs, s.height * scale);
+            playNote(144, note, velocity, imgs, height);
         });
         document.addEventListener('keyup', function(e){
             keyDown[e.code] = false;
             var note = keyboard[e.code];
-            playNote(128, note, velocity, imgs, s.height * scale);
+            playNote(128, note, velocity, imgs, height);
         });
-        connectWebSocket(imgs, imgDir, composition, scale);
+        connectWebSocket(imgs, height);
+        initWebMidi(velocity, imgs, height);
     };
 
 document.addEventListener('DOMContentLoaded', function(){

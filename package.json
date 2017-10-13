@@ -1,5 +1,6 @@
 {
-  "dependencies": {
-    "midi": "^0.9.5"
-  }
+    "dependencies": {
+        "midi": "^0.9.5",
+        "webmidi": "2.0.0-rc.9"
+    }
 }
