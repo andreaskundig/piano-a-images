@@ -17,7 +17,7 @@ def convert_white_to_transparent(img):
     img.putdata(newData)
     return img
 
-infiles = glob.glob('big/*')
+infiles = glob.glob('big/*.png')
 for idx, infile in enumerate(infiles):
     outfile = os.path.splitext(os.path.split(infile)[1])[0] + '.png'
     print(infile, outfile)

@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function(){
         }
         document.title = imgDir;
         synth = new WebAudioTinySynth();
-//        synth.send([0xc0,14]); // tubular bells
+        // synth.send([0xc0,14]); // tubular bells
         loadJs(imgDir+'/img.js').then(function(){
             run(imgDir, doPlay, composition);
         }).catch(function(e){
