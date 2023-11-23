@@ -70,13 +70,13 @@ var getUrlParams = function(href){
                 .concat('QAWSDRFTGYHJIKOL'.split('')
                         .map(function(l){return 'Key'+l;}))
                 .concat(['Semicolon','BracketLeft','Quote','BracketRight',
-                          'Backslash', 'ShiftRight','Enter','ControlRight']);
+                         'Backslash','Enter','ShiftRight','ControlRight']);
         keys.forEach(function(k, i){
             keyToNote[k] = 36 + i;
         });
         return keyToNote;
     },
-    synth,
+    synth = new WebAudioTinySynth(),
     playNote = function(message,note,velocity, imgs, height){
         if(!note){return;}
         // console.log('play',message,note,velocity);
@@ -188,22 +188,23 @@ var getUrlParams = function(href){
         });
         connectWebSocket(imgs, height);
         initWebMidi(velocity, imgs, height);
+    },
+    setupPlayHtml = function(imgDir) {
+        document.getElementById('intro').style.display = 'none';
+        document.querySelector('body').style.cursor = 'none';
+        document.title = imgDir;
+    },
+    playImages = function(imgDir, doPlay){
+        loadJs(imgDir+'/img.js').then(function(){
+            setupPlayHtml(imgDir);
+            run(imgDir, doPlay, composition);
+        }).catch(function(e){
+            console.error(e);
+        });
     };
 
 document.addEventListener('DOMContentLoaded', function(){
     try{
-        
-        var imgDir = getUrlParam(location.href,'img'),
-            doPlay = getUrlParam(location.href,'play'),
-            intro = document.getElementById('intro');
-        console.log(imgDir, !imgDir);
-        if(!imgDir){
-            document.querySelector('body').style.cursor = 'auto';
-            intro.style.display = 'block';
-            return;
-        }
-        document.title = imgDir;
-        synth = new WebAudioTinySynth();
         // synth.send([0xc0,0]); // Acoustic grand piano
         // synth.send([0xc0,1]); // Bright acoustic piano
         // synth.send([0xc0,2]); // Electric grand piano
@@ -211,10 +212,17 @@ document.addEventListener('DOMContentLoaded', function(){
         // synth.send([0xc0,4]); // Electric Piano 1
         // synth.send([0xc0,5]); // Electric Piano 2
         // synth.send([0xc0,14]); // tubular bells
-        loadJs(imgDir+'/img.js').then(function(){
-            run(imgDir, doPlay, composition);
-        }).catch(function(e){
-            console.error(e);
-        });
+        var imgDir = getUrlParam(location.href,'img');
+        if(imgDir){
+            playImages(imgDir, false);
+        } else {
+            document.getElementById('intro').style.display = 'block';
+            document.querySelectorAll('[data-img]').forEach( link => {
+                link.addEventListener('click', () => {
+                    playImages(link.dataset.img, !!link.dataset.play);
+                    return false;
+                })
+            } )
+        }
     }catch(e){ console.error(e); }
 });
