@@ -86,35 +86,42 @@ var getUrlParams = function(href){
         synth.send([message, note, velocity]);
         showSpriteForNote(message, note, imgs, height);
     },
-    play = function(composition, imgs, scale){
-        if(!composition.partition){ return; }
-        var v = 100,// velocity
-            //stops the flickering at the start (why?)
-            //leaves time for loading the images on the web
-            loadingDelay = 600,
-            start = Date.now() + 200 + loadingDelay,
-            compare = function(a,b){ return a.t - b.t;},
-            partition = composition.partition.slice().sort(compare),
-            height = composition.imageSize.height * scale,
-            doPlay = function(){
-                var time = (Date.now() - start) / 1000;
-                while(partition.length > 0){
-                    var mid = partition[0],
-                        diff = mid.t - time;
-                    if(diff < 0){
-                        partition.shift();
-                        playNote(mid.m, mid.n, v, imgs, height);
-                    }else{
-                        break;
+    play = function(piece){
+        const { composition, scale, imgs } = piece;
+        return new Promise((resolve, reject) => {
+            if(!composition.partition){ return; }
+            var v = 100,// velocity
+                //stops the flickering at the start (why?)
+                //leaves time for loading the images on the web
+                loadingDelay = 600,
+                start = Date.now() + 200 + loadingDelay,
+                compare = function(a,b){ return a.t - b.t;},
+                partition = composition.partition.slice().sort(compare),
+                height = composition.imageSize.height * scale,
+                doPlay = function(){
+                    var time = (Date.now() - start) / 1000;
+                    while(partition.length > 0){
+                        var mid = partition[0],
+                            diff = mid.t - time;
+                        if(diff < 0){
+                            partition.shift();
+                            playNote(mid.m, mid.n, v, imgs, height);
+                        }else{
+                            break;
+                        }
                     }
-                }
-                if(partition.length > 0){
-                    requestAnimationFrame(doPlay);
-                }
-            };
-        //doPlay();
-        // setTimeout(doPlay, 300); //stops the flickering at start, but why?
-        setTimeout(doPlay, loadingDelay); // time to load the images
+                    if(!currentPiece) {
+                        // interruption
+                        reject();
+                    } else if(partition.length > 0){
+                        requestAnimationFrame(doPlay);
+                    }else{
+                        resolve();
+                    }
+                };
+            //doPlay();
+            setTimeout(doPlay, loadingDelay); // time to load the images
+        });
     },
     midiMessageReceived = function(ev, velocity, imgs, height) {
         var message = ev.data[0],
@@ -128,7 +135,8 @@ var getUrlParams = function(href){
         for (var input of midiAccess.inputs.values()){
             console.log('midi input', input);
             input.onmidimessage = ev => {
-                midiMessageReceived(ev, velocity, imgs, height);
+                const { imgs, scaledHeight } = currentPiece;
+                midiMessageReceived(ev, velocity, imgs, scaledHeight);
             };
         }
     },
@@ -139,16 +147,18 @@ var getUrlParams = function(href){
                 e => console.error(e));
         }
     },
-    connectWebSocket = function(imgs, height){
+    connectWebSocket = function(){
         var midiSocket = new WebSocket("ws://localhost:8080");
         midiSocket.onmessage = function (event) {
             var msgArray = JSON.parse(event.data)[1],
                 message = msgArray[0],
                 note = msgArray[1];
-            showSpriteForNote(message, note, imgs, height);
+            const { imgs, scaledHeight } = currentPiece;
+            showSpriteForNote(message, note, imgs, scaledHeight);
         };
     },
-    buildBackground = function(imgDir, composition, scale){
+    buildBackground = function(piece){
+        const { imgDir, composition, scale, imgs } = piece;
         if(composition.background){
             var s = composition.imageSize,
                 bg = buildSprite(imgDir, composition.background,
@@ -159,45 +169,67 @@ var getUrlParams = function(href){
         }
     },
     keyDown = {},
-    run = function(imgDir, doPlay,composition){
+    currentPiece = undefined,
+    createPiece = function(imgDir, composition) {
         if(!composition.imageSize){
             composition.imageSize = {width: 1280, height: 720};
         }
         var s = composition.imageSize,
             scale = Math.min(window.innerWidth/s.width,
                              window.innerHeight/s.height),
-            height = s.height * scale,
+            scaledHeight = composition.imageSize.height * scale,
             imgs = buildSprites(composition.imageSequence, imgDir,
-                                   s.width, s.height, scale),
-            keyboard = makeKeyboard(),
-            velocity = 100;
-        buildBackground(imgDir, composition, scale);
-        if(doPlay){
-            play(composition, imgs, scale);
-        }
+                                s.width, s.height, scale);
+
+        return { imgDir, imgs, scale, scaledHeight, composition };
+    },
+    setupListeners = function() {
+        const keyboard = makeKeyboard();
+        const velocity = 100;
         document.addEventListener('keydown', function(e){
+            //TODO ESC => menu
             if(keyDown[e.code]){ return; }
+            const { imgs, scaledHeight } = currentPiece;
             var note = keyboard[e.code];
             keyDown[e.code] = true;
-            playNote(144, note, velocity, imgs, height);
+            playNote(144, note, velocity, imgs, scaledHeight);
         });
         document.addEventListener('keyup', function(e){
             keyDown[e.code] = false;
+            const { imgs, scaledHeight } = currentPiece;
             var note = keyboard[e.code];
-            playNote(128, note, velocity, imgs, height);
+            playNote(128, note, velocity, imgs, scaledHeight);
         });
-        connectWebSocket(imgs, height);
-        initWebMidi(velocity, imgs, height);
+        connectWebSocket();
+        initWebMidi(velocity);
     },
-    setupPlayHtml = function(imgDir) {
+    setupPlayHtml = function(piece) {
         document.getElementById('intro').style.display = 'none';
         document.querySelector('body').style.cursor = 'none';
-        document.title = imgDir;
+        document.title = piece.imgDir;
+        buildBackground(piece);
     },
+    showIntro = function() {
+        document.getElementById('frame-parent').replaceChildren();
+        document.getElementById('background-parent').replaceChildren();
+        document.getElementById('intro').style.display = 'block';
+        document.querySelector('body').style.cursor = 'auto';
+        currentPiece = undefined;
+    }
     playImages = function(imgDir, doPlay){
-        loadJs(imgDir+'/img.js').then(function(){
-            setupPlayHtml(imgDir);
-            run(imgDir, doPlay, composition);
+        loadJs(imgDir+'/img.js').then(async function(){
+            currentPiece = createPiece(imgDir, composition);
+            setupPlayHtml(currentPiece);
+            if(doPlay){
+                try {
+                    await play(currentPiece);
+                    console.log('played');
+                } catch(e) {
+                    console.log('interrupted');
+                }
+                const delayBeforeBackToIntro = 2000;
+                setTimeout(showIntro, delayBeforeBackToIntro);
+            }
         }).catch(function(e){
             console.error(e);
         });
@@ -213,8 +245,11 @@ document.addEventListener('DOMContentLoaded', function(){
         // synth.send([0xc0,5]); // Electric Piano 2
         // synth.send([0xc0,14]); // tubular bells
         var imgDir = getUrlParam(location.href,'img');
+        var play = getUrlParam(location.href,'play');
+        setupListeners();
         if(imgDir){
             playImages(imgDir, false);
+            // TODO if play, display a play button
         } else {
             document.getElementById('intro').style.display = 'block';
             document.querySelectorAll('[data-img]').forEach( link => {
