@@ -303,6 +303,9 @@ document.addEventListener('DOMContentLoaded', function(){
             showPlayLandingPage(imgDir);
         } else if(imgDir){
             playAnimation(imgDir, false);
+            // to debug scroll bar during animation:
+            // http://localhost:8000/index.html?img=cuillere
+            // showSpriteForNote(144, 50, currentAnimation.imgs,514.125)
         } else {
             showIntro();
         }
