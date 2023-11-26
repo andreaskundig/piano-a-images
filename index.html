@@ -14,8 +14,6 @@
              transform: translate(-50%, -50%);
          }
          body {
-             width:100%;
-             height:100%;
              margin:0;
              font-family: "EB Garamond",  sans-serif;
              font-size: large;
@@ -33,13 +31,23 @@
              font-size: medium;
          }
          #intro {
-             position: fixed;
-             left: 0;
-             right: 0;
              margin-left: auto;
              margin-right: auto;
              padding: 0 40px;
              max-width: 75ch;
+         }
+         #play-page {
+             display: none;
+             height: 100%;
+             place-content: center;
+             align-items: center;
+         }
+         #play-button {
+             font-size: 5em;
+             padding: 0.1em 0.1em 0.16em 0.31em;
+             line-height: 1;
+             border-radius: 15em;
+             border: solid 9px;
          }
          button {
              padding: 10px 15px;
@@ -77,6 +85,7 @@
             <button data-img="chevaliers">chevaliers</button>
             <p class="credentials">Créé par l'oubamupo à Bosmelet en juillet 2017. Contributions d'Etienne Lécroart, Ivan Gulizia, Andréas Kündig, Valentin Villenave et peut-être aussi Moreno Andreatta...</p>
         </div>
+        <div id="play-page"><button id="play-button">▶</button></div>
         <div id="background-parent"></div>
         <div id="frame-parent"></div>
     </body>

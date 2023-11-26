@@ -197,7 +197,7 @@ function createAnimation(imgDir, composition) {
     return { imgDir, imgs, scale, scaledHeight, composition };
 }
 
-function setupListeners() {
+function setupPianoListeners() {
     const keyboard = makeKeyboard();
     const velocity = 100;
     document.addEventListener('keydown', function(e){
@@ -218,8 +218,12 @@ function setupListeners() {
     initWebMidi(velocity);
 }
 
-function setupAnimationHtml(animation) {
+function hideIntro(){
     document.getElementById('intro').style.display = 'none';
+}
+
+function setupAnimationHtml(animation) {
+    hideIntro();
     document.querySelector('body').style.cursor = 'none';
     document.title = animation.imgDir;
     buildBackground(animation);
@@ -228,13 +232,37 @@ function setupAnimationHtml(animation) {
 function clearAnimation() {
     document.getElementById('frame-parent').replaceChildren();
     document.getElementById('background-parent').replaceChildren();
+    const script = document.getElementById('the-animation')
+    script?.parentNode.removeChild(script);
     currentAnimation = undefined;
+    document.querySelector('body').style.cursor = 'auto';
 }
 
 function showIntro() {
     clearAnimation();
     document.getElementById('intro').style.display = 'block';
+    document.title = 'Piano à images';
+}
+
+/**
+ * Show a landing page with a play button to launch an animation.
+ * Browsers no longer support audio autoplay,
+ * so a user action like a button click is necessary to run an animation.
+ * This is only used as an landing page and is not shown afterwards.
+ **/
+function showPlayLandingPage(imgDir) {
+    hideIntro();
+    document.getElementById('play-page').style.display = 'flex';
     document.querySelector('body').style.cursor = 'auto';
+    const playButton = document.getElementById('play-button')
+    playButton.addEventListener('click', () => {
+        hidePlayPage();
+        playAnimation(imgDir, true);
+    })
+}
+
+function hidePlayPage() {
+    document.getElementById('play-page').style.display = 'none';
 }
 
 function playAnimation(imgDir, doPlay) {
@@ -270,18 +298,18 @@ document.addEventListener('DOMContentLoaded', function(){
         // synth.send([0xc0,14]); // tubular bells
         var imgDir = getUrlParam(location.href,'img');
         var play = getUrlParam(location.href,'play');
-        setupListeners();
-        if(imgDir){
+        setupPianoListeners();
+        if(imgDir && play){
+            showPlayLandingPage(imgDir);
+        } else if(imgDir){
             playAnimation(imgDir, false);
-            // TODO if play, display a play button
         } else {
-            document.getElementById('intro').style.display = 'block';
-            document.querySelectorAll('[data-img]').forEach( link => {
-                link.addEventListener('click', () => {
-                    playAnimation(link.dataset.img, !!link.dataset.play);
-                    return false;
-                })
-            } )
+            showIntro();
         }
+        document.querySelectorAll('[data-img]').forEach( btn => {
+            btn.addEventListener('click', () => {
+                playAnimation(btn.dataset.img, !!btn.dataset.play);
+            })
+        } )
     }catch(e){ console.error(e); }
 });
