@@ -96,8 +96,8 @@ function playNote(message,note,velocity, imgs, height) {
     showSpriteForNote(message, note, imgs, height);
 }
 
-function play(piece) {
-    const { composition, scale, imgs } = piece;
+function play(animation) {
+    const { composition, scale, imgs } = animation;
     return new Promise((resolve, reject) => {
         if(!composition.partition){ return; }
         var v = 100,// velocity
@@ -120,7 +120,7 @@ function play(piece) {
                         break;
                     }
                 }
-                if(!currentPiece) {
+                if(!currentAnimation) {
                     // interruption
                     reject();
                 } else if(partition.length > 0){
@@ -147,7 +147,7 @@ function onMIDIInit(midiAccess, velocity, imgs, height) {
     for (var input of midiAccess.inputs.values()){
         console.log('midi input', input);
         input.onmidimessage = ev => {
-            const { imgs, scaledHeight } = currentPiece;
+            const { imgs, scaledHeight } = currentAnimation;
             midiMessageReceived(ev, velocity, imgs, scaledHeight);
         };
     }
@@ -167,13 +167,13 @@ function connectWebSocket() {
         var msgArray = JSON.parse(event.data)[1],
             message = msgArray[0],
             note = msgArray[1];
-        const { imgs, scaledHeight } = currentPiece;
+        const { imgs, scaledHeight } = currentAnimation;
         showSpriteForNote(message, note, imgs, scaledHeight);
     };
 }
 
-function buildBackground(piece){
-    const { imgDir, composition, scale, imgs } = piece;
+function buildBackground(animation){
+    const { imgDir, composition, scale, imgs } = animation;
     if(composition.background){
         var s = composition.imageSize,
             bg = buildSprite(imgDir, composition.background,
@@ -184,7 +184,7 @@ function buildBackground(piece){
     }
 }
 
-function createPiece(imgDir, composition) {
+function createAnimation(imgDir, composition) {
     if(!composition.imageSize){
         composition.imageSize = {width: 1280, height: 720};
     }
@@ -203,14 +203,14 @@ function setupListeners() {
     document.addEventListener('keydown', function(e){
         //TODO ESC => menu
         if(keyDown[e.code]){ return; }
-        const { imgs, scaledHeight } = currentPiece;
+        const { imgs, scaledHeight } = currentAnimation;
         var note = keyboard[e.code];
         keyDown[e.code] = true;
         playNote(144, note, velocity, imgs, scaledHeight);
     });
     document.addEventListener('keyup', function(e){
         keyDown[e.code] = false;
-        const { imgs, scaledHeight } = currentPiece;
+        const { imgs, scaledHeight } = currentAnimation;
         var note = keyboard[e.code];
         playNote(128, note, velocity, imgs, scaledHeight);
     });
@@ -218,28 +218,32 @@ function setupListeners() {
     initWebMidi(velocity);
 }
 
-function setupPlayHtml(piece) {
+function setupAnimationHtml(animation) {
     document.getElementById('intro').style.display = 'none';
     document.querySelector('body').style.cursor = 'none';
-    document.title = piece.imgDir;
-    buildBackground(piece);
+    document.title = animation.imgDir;
+    buildBackground(animation);
+}
+
+function clearAnimation() {
+    document.getElementById('frame-parent').replaceChildren();
+    document.getElementById('background-parent').replaceChildren();
+    currentAnimation = undefined;
 }
 
 function showIntro() {
-    document.getElementById('frame-parent').replaceChildren();
-    document.getElementById('background-parent').replaceChildren();
+    clearAnimation();
     document.getElementById('intro').style.display = 'block';
     document.querySelector('body').style.cursor = 'auto';
-    currentPiece = undefined;
 }
 
-function playImages(imgDir, doPlay) {
+function playAnimation(imgDir, doPlay) {
     loadJs(imgDir+'/img.js').then(async function(){
-        currentPiece = createPiece(imgDir, composition);
-        setupPlayHtml(currentPiece);
+        currentAnimation = createAnimation(imgDir, composition);
+        setupAnimationHtml(currentAnimation);
         if(doPlay){
             try {
-                await play(currentPiece);
+                await play(currentAnimation);
                 console.log('played');
             } catch(e) {
                 console.log('interrupted');
@@ -253,7 +257,7 @@ function playImages(imgDir, doPlay) {
 };
 
 const keyDown = {};
-let currentPiece = undefined;
+let currentAnimation = undefined;
 
 document.addEventListener('DOMContentLoaded', function(){
     try{
@@ -268,13 +272,13 @@ document.addEventListener('DOMContentLoaded', function(){
         var play = getUrlParam(location.href,'play');
         setupListeners();
         if(imgDir){
-            playImages(imgDir, false);
+            playAnimation(imgDir, false);
             // TODO if play, display a play button
         } else {
             document.getElementById('intro').style.display = 'block';
             document.querySelectorAll('[data-img]').forEach( link => {
                 link.addEventListener('click', () => {
-                    playImages(link.dataset.img, !!link.dataset.play);
+                    playAnimation(link.dataset.img, !!link.dataset.play);
                     return false;
                 })
             } )
