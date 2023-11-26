@@ -201,14 +201,17 @@ function setupPianoListeners() {
     const keyboard = makeKeyboard();
     const velocity = 100;
     document.addEventListener('keydown', function(e){
-        //TODO ESC => menu
-        if(keyDown[e.code]){ return; }
+        if( e.code === 'Escape' ){
+            showIntro();
+        }
+        if(keyDown[e.code] || !currentAnimation){ return; }
         const { imgs, scaledHeight } = currentAnimation;
         var note = keyboard[e.code];
         keyDown[e.code] = true;
         playNote(144, note, velocity, imgs, scaledHeight);
     });
     document.addEventListener('keyup', function(e){
+        if(!currentAnimation){ return; }
         keyDown[e.code] = false;
         const { imgs, scaledHeight } = currentAnimation;
         var note = keyboard[e.code];
