@@ -2,7 +2,7 @@
 
 Le piano à images affiche une image pour chaque note jouée par un piano. 
 
-Le plus simple est d'utiliser la [version web](https://rawcdn.githack.com/andreaskundig/piano-a-images/ea59283a73185a79a1aa94d278d34bbf066ebb74/index.html).
+Le plus simple est d'utiliser la [version web](https://rawcdn.githack.com/andreaskundig/piano-a-images/05a9fd5/index.html).
 Si on a le projet en local, on peut simplement ouvrir  [index.html](file://index.html) dans un navigateur. 
 
 ## Clavier midi
